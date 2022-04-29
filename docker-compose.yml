@@ -1,0 +1,42 @@
+version: '3.7'
+
+volumes:
+    express-mysql:
+        driver: 'local'
+
+networks:
+    express-net:
+        driver: 'bridge'
+
+services:
+    db:
+        container_name: express-db
+        image: mysql:8.0
+        volumes:
+            - express-mysql:/var/lib/mysql
+        restart: always
+        tty: true
+        ports:
+            - "4000:3306"
+        environment:
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+        networks:
+            - express-net
+    app:
+        container_name: express-node
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        volumes:
+            - .:/app
+            - /app/node_modules
+        restart: always
+        command: node_modules/.bin/nodemon --exec nodemon public/index.js
+        tty: true
+        ports:
+          - 5000:5000
+        networks:
+            - express-net
